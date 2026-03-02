@@ -1,9 +1,4 @@
-src-git packages https://github.com/friendlyarm/friendlywrt_project_packages^5b22f3f59c03412200fe4815d833943f953edf2b
-src-git luci https://github.com/friendlyarm/friendlywrt_project_luci^28fc0fa6d90a8eb3db0c93e749ed5aefdbfc4f8a
-src-git routing https://git.openwrt.org/feed/routing.git^f1b0476edc5486793e098fe83089054bb2941663
-src-git telephony https://git.openwrt.org/feed/telephony.git^6f95d6ab3f359ee2ce81c20522700937424d1591
-#src-git video https://github.com/openwrt/video.git
-#src-git targets https://github.com/openwrt/targets.git
-#src-git management https://github.com/openwrt-management/packages.git
-#src-git oldpackages http://git.openwrt.org/packages.git
-#src-link custom /usr/src/openwrt/custom-feed
+src-git packages https://git.openwrt.org/feed/packages.git^f1470815f41fe199bfdafe9a91ad115bc2e91203
+src-git luci https://git.openwrt.org/project/luci.git^75e41cba5160281b2d1dca922719efef29f7ffd8
+src-git routing https://git.openwrt.org/feed/routing.git^3eb59e9471858c83891979793f1dd29cca156919
+src-git telephony https://git.openwrt.org/feed/telephony.git^11e9c73bff6be34ff2fdcd4bc0e81a4723d78652

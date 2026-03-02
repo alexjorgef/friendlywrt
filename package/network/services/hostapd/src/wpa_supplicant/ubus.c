@@ -20,15 +20,14 @@ static struct ubus_context *ctx;
 static struct blob_buf b;
 static int ctx_ref;
 
+static inline struct wpa_global *get_wpa_global_from_object(struct ubus_object *obj)
+{
+	return container_of(obj, struct wpa_global, ubus_global);
+}
+
 static inline struct wpa_supplicant *get_wpas_from_object(struct ubus_object *obj)
 {
 	return container_of(obj, struct wpa_supplicant, ubus.obj);
-}
-
-static void ubus_receive(int sock, void *eloop_ctx, void *sock_ctx)
-{
-	struct ubus_context *ctx = eloop_ctx;
-	ubus_handle_event(ctx);
 }
 
 static void ubus_reconnect_timeout(void *eloop_data, void *user_ctx)
@@ -38,12 +37,12 @@ static void ubus_reconnect_timeout(void *eloop_data, void *user_ctx)
 		return;
 	}
 
-	eloop_register_read_sock(ctx->sock.fd, ubus_receive, ctx, NULL);
+	ubus_add_uloop(ctx);
 }
 
 static void wpas_ubus_connection_lost(struct ubus_context *ctx)
 {
-	eloop_unregister_read_sock(ctx->sock.fd);
+	uloop_fd_delete(&ctx->sock);
 	eloop_register_timeout(1, 0, ubus_reconnect_timeout, ctx, NULL);
 }
 
@@ -52,12 +51,14 @@ static bool wpas_ubus_init(void)
 	if (ctx)
 		return true;
 
+	eloop_add_uloop();
 	ctx = ubus_connect(NULL);
 	if (!ctx)
 		return false;
 
 	ctx->connection_lost = wpas_ubus_connection_lost;
-	eloop_register_read_sock(ctx->sock.fd, ubus_receive, ctx, NULL);
+	ubus_add_uloop(ctx);
+
 	return true;
 }
 
@@ -75,7 +76,7 @@ static void wpas_ubus_ref_dec(void)
 	if (ctx_ref)
 		return;
 
-	eloop_unregister_read_sock(ctx->sock.fd);
+	uloop_fd_delete(&ctx->sock);
 	ubus_free(ctx);
 	ctx = NULL;
 }
@@ -93,6 +94,19 @@ wpas_bss_get_features(struct ubus_context *ctx, struct ubus_object *obj,
 	ubus_send_reply(ctx, req, b.head);
 
 	return 0;
+}
+
+static int
+wpas_bss_reload(struct ubus_context *ctx, struct ubus_object *obj,
+		struct ubus_request_data *req, const char *method,
+		struct blob_attr *msg)
+{
+	struct wpa_supplicant *wpa_s = get_wpas_from_object(obj);
+
+	if (wpa_supplicant_reload_configuration(wpa_s))
+		return UBUS_STATUS_UNKNOWN_ERROR;
+	else
+		return 0;
 }
 
 #ifdef CONFIG_WPS
@@ -146,11 +160,12 @@ wpas_bss_wps_cancel(struct ubus_context *ctx, struct ubus_object *obj,
 #endif
 
 static const struct ubus_method bss_methods[] = {
+	UBUS_METHOD_NOARG("reload", wpas_bss_reload),
+	UBUS_METHOD_NOARG("get_features", wpas_bss_get_features),
 #ifdef CONFIG_WPS
 	UBUS_METHOD_NOARG("wps_start", wpas_bss_wps_start),
 	UBUS_METHOD_NOARG("wps_cancel", wpas_bss_wps_cancel),
 #endif
-	UBUS_METHOD_NOARG("get_features", wpas_bss_get_features),
 };
 
 static struct ubus_object_type bss_object_type =

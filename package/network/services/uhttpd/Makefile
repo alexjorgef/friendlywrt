@@ -8,18 +8,18 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=uhttpd
-PKG_RELEASE:=1
+PKG_RELEASE:=4
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/uhttpd.git
-PKG_SOURCE_DATE:=2019-12-22
-PKG_SOURCE_VERSION:=5f9ae5738372aaa3a6be2f0a278933563d3f191a
-PKG_MIRROR_HASH:=16977c2d7e68f6db3241f874df625af9bd3bafa06fe4499ecb3561c825321e5d
+PKG_SOURCE_DATE:=2025-07-06
+PKG_SOURCE_VERSION:=7e64e8bad2415cec0a6d9770ec379db54273c7a7
+PKG_MIRROR_HASH:=61a7ad046f31f229f6a8620b890e448c5df397391edb5f7bd2a84446486eaff4
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=ISC
 
+PKG_ASLR_PIE_REGULAR:=1
 PKG_BUILD_DEPENDS = ustream-ssl
-PKG_CONFIG_DEPENDS:= CONFIG_uhttpd_lua
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
@@ -43,12 +43,12 @@ define Package/uhttpd/description
  HTTP daemon.
 endef
 
-define Package/uhttpd/config
-  config uhttpd_lua
-    depends on PACKAGE_uhttpd-mod-lua
-    bool "Enable Integrated Lua interpreter"
-	default y
+define Package/uhttpd/conffiles
+/etc/config/uhttpd
+/etc/uhttpd.crt
+/etc/uhttpd.key
 endef
+
 
 define Package/uhttpd-mod-lua
   $(Package/uhttpd/default)
@@ -72,27 +72,27 @@ define Package/uhttpd-mod-ubus/description
  session.* namespace and procedures.
 endef
 
-define Package/uhttpd/conffiles
-/etc/config/uhttpd
-/etc/uhttpd.crt
-/etc/uhttpd.key
+
+define Package/uhttpd-mod-ucode
+  $(Package/uhttpd/default)
+  TITLE+= (ucode plugin)
+  DEPENDS:=uhttpd +libucode
 endef
+
+define Package/uhttpd-mod-ucode/description
+ The ucode plugin adds a CGI-like ucode runtime interface to uHTTPd.
+endef
+
 
 ifneq ($(CONFIG_USE_GLIBC),)
   TARGET_CFLAGS += -D_DEFAULT_SOURCE
 endif
 
-TARGET_LDFLAGS += -lcrypt
-
-CMAKE_OPTIONS = -DTLS_SUPPORT=on
-
 define Package/uhttpd/install
-	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_DIR) $(1)/etc/init.d $(1)/etc/config $(1)/usr/sbin
 	$(INSTALL_BIN) ./files/uhttpd.init $(1)/etc/init.d/uhttpd
-	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_CONF) ./files/uhttpd.config $(1)/etc/config/uhttpd
 	$(VERSION_SED_SCRIPT) $(1)/etc/config/uhttpd
-	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uhttpd $(1)/usr/sbin/uhttpd
 endef
 
@@ -107,7 +107,20 @@ define Package/uhttpd-mod-ubus/install
 	$(INSTALL_DATA) ./files/ubus.default $(1)/etc/uci-defaults/00_uhttpd_ubus
 endef
 
+define Package/uhttpd-mod-ubus/postinst
+#!/bin/sh
+if [ -z "$${IPKG_INSTROOT}" ]; then
+	/etc/init.d/uhttpd reload
+fi
+endef
+
+define Package/uhttpd-mod-ucode/install
+	$(INSTALL_DIR) $(1)/usr/lib
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uhttpd_ucode.so $(1)/usr/lib/
+endef
+
 
 $(eval $(call BuildPackage,uhttpd))
 $(eval $(call BuildPackage,uhttpd-mod-lua))
 $(eval $(call BuildPackage,uhttpd-mod-ubus))
+$(eval $(call BuildPackage,uhttpd-mod-ucode))

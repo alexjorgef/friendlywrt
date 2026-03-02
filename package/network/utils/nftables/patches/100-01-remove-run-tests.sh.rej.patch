@@ -1,0 +1,35 @@
+From 96c885e92a548ea362a37d6a3cb53b3d1a83b8e0 Mon Sep 17 00:00:00 2001
+From: hmz007 <hmz007@gmail.com>
+Date: Thu, 6 Feb 2025 20:13:37 +0800
+Subject: [PATCH] Revert "tests: add run-tests.sh.rej of nftables-1.1.1.tar.xz"
+
+This reverts commit ef333cef12bc5febfcbef6e21413f1b31534615c.
+---
+ tests/shell/run-tests.sh.rej | 15 ---------------
+ 1 file changed, 15 deletions(-)
+ delete mode 100644 tests/shell/run-tests.sh.rej
+
+diff --git a/tests/shell/run-tests.sh.rej b/tests/shell/run-tests.sh.rej
+deleted file mode 100644
+index 0a77643e..00000000
+--- a/tests/shell/run-tests.sh.rej
++++ /dev/null
+@@ -1,15 +0,0 @@
+---- run-tests.sh
+-+++ run-tests.sh
+-@@ -565,11 +565,8 @@ feature_probe()
+- 	fi
+- 
+- 	if [ -x "$with_path.sh" ] ; then
+--		echo $with_path
+- 		NFT="$NFT_REAL" $NFT_TEST_UNSHARE_CMD "$with_path.sh" &>/dev/null
+--		RET=$?
+--		echo $?
+--		return $RET
+-+		return $?
+- 	fi
+- 
+- 	return 1
+-- 
+2.47.0
+

@@ -8,19 +8,19 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=odhcpd
-PKG_RELEASE:=3
+PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/odhcpd.git
-PKG_SOURCE_DATE:=2019-12-16
-PKG_SOURCE_VERSION:=e53fec897838aca411cb5fcdb9bf795e73414565
-PKG_MIRROR_HASH:=853dfcd464e2c6d09e37720421ebccb20581159763416fcd5ac8aad439e206b7
+PKG_MIRROR_HASH:=1ad44323f7803fdb5d1b2492d47e4b4b0fbc3d4c7c171b270422b10535c2a284
+PKG_SOURCE_DATE:=2025-10-02
+PKG_SOURCE_VERSION:=b14cf98c914d8582f18c7b263814797366fa185d
 
 PKG_MAINTAINER:=Hans Dedecker <dedeckeh@gmail.com>
 PKG_LICENSE:=GPL-2.0
 
-PKG_INSTALL:=1
 PKG_CONFIG_DEPENDS:=CONFIG_PACKAGE_odhcpd_$(BUILD_VARIANT)_ext_cer_id
+PKG_ASLR_PIE_REGULAR:=1
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
@@ -29,7 +29,7 @@ define Package/odhcpd/default
   SECTION:=net
   CATEGORY:=Network
   TITLE:=OpenWrt DHCPv6(-PD)/RA Server & Relay
-  DEPENDS:=+libubox +libuci +libubus +libnl-tiny
+  DEPENDS:=+libjson-c +libubox +libuci +libubus +libnl-tiny
 endef
 
 define Package/odhcpd/default/description
@@ -99,7 +99,7 @@ define Package/odhcpd/install
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/odhcpd.init $(1)/etc/init.d/odhcpd
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
-	$(INSTALL_BIN) ./files/odhcpd.defaults $(1)/etc/uci-defaults
+	$(INSTALL_BIN) ./files/odhcpd.defaults $(1)/etc/uci-defaults/15_odhcpd
 endef
 
 Package/odhcpd-ipv6only/install = $(Package/odhcpd/install)

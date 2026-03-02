@@ -8,18 +8,22 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libnftnl
-PKG_VERSION:=1.1.4
+PKG_CPE_ID:=cpe:/a:netfilter:libnftnl
+PKG_VERSION:=1.2.8
 PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=https://netfilter.org/projects/$(PKG_NAME)/files
-PKG_HASH:=c8c7988347adf261efac5bba59f8e5f995ffb65f247a88cc144e69620573ed20
+PKG_HASH:=37fea5d6b5c9b08de7920d298de3cdc942e7ae64b1a3e8b880b2d390ae67ad95
+
 PKG_MAINTAINER:=Steven Barth <steven@midlink.org>
-PKG_LICENSE:=GPL-2.0+
+PKG_LICENSE:=GPL-2.0-or-later
+PKG_LICENSE_FILES:=COPYING
 
 PKG_FIXUP:=autoreconf
-
 PKG_INSTALL:=1
+PKG_BUILD_PARALLEL:=1
+PKG_BUILD_FLAGS:=lto
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -43,8 +47,7 @@ TARGET_CFLAGS += $(FPIC)
 
 CONFIGURE_ARGS += \
 	--enable-static \
-	--enable-shared \
-	--without-json-parsing
+	--enable-shared
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include/libnftnl
